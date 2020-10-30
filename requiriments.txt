@@ -91,3 +91,4 @@ Werkzeug==1.0.1
 wrapt==1.12.1
 yarl @ file:///tmp/build/80754af9/yarl_1602693007734/work
 zipp @ file:///tmp/build/80754af9/zipp_1602002379921/work
+torchsummary==1.5.1

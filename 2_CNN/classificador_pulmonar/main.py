@@ -2,13 +2,16 @@ from datetime import datetime
 from torch.autograd import Variable
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from utils.util import dateBack
 from PIL import Image
 from utils.arquivo_util import FixedHeightResize
+from torchsummary import summary
+
+# Modelo
+import model as modeloCNN 
 
 # Modulos para auxilio na estrutura do projeto.
 from tqdm import tqdm
@@ -26,6 +29,8 @@ def main(parser):
     dev = "cuda:0" 
   else:  
     dev = "cpu"
+
+  print(f'Modelo será executado no device {dev}')
 
   device = torch.device(dev)
 
@@ -48,30 +53,9 @@ def main(parser):
   # Data loader
   train_loader = torch.utils.data.DataLoader(dataset=train_dataset, shuffle=True, batch_size=parser.batch_size)
   val_loader = torch.utils.data.DataLoader(dataset=val_dataset, shuffle=True, batch_size=parser.batch_size)
-  
- #************************************ Modelo ***************************************************
-  class ModelClassificadorPulmonar(nn.Module):
-    def __init__(self):
-      super(ModelClassificadorPulmonar, self).__init__()
-      self.conv1 = nn.Conv2d(3, 6, 5)
-      self.conv2 = nn.Conv2d(6, 16, 5)
-      self.linear1 = nn.Linear(4624, 120)
-      self.linear2 = nn.Linear(120, 84)
-      self.linear3 = nn.Linear(84, 2)
-      self.pool = nn.MaxPool2d(2, 2)
-      self.dropout = nn.Dropout2d(p=0.2)
-
-    def forward(self, x):
-      x = self.pool(F.relu(self.conv1(x)))
-      x = self.pool(F.relu(self.conv2(x)))
-      x = x.view(-1, 4624)
-      x = F.relu(self.linear1(x))
-      x = F.relu(self.linear2(x))
-      x = self.linear3(x)
-      return x
 
  # ************************************* REDE ************************************************
-  rede = ModelClassificadorPulmonar()
+  rede = modeloCNN.ModelClassificadorPulmonarSequencialFlating()
 
 # carrega a rede treinada anteriormente
   if parser.pesos:
@@ -127,12 +111,13 @@ def main(parser):
       train_loss += loss.item()
 
     logging.info('Validacao: {}'.format(str(epoch)))
+
     val_loss = 0
     acertos = 0
-    
+
     # aplica o device nas variaveis que necessitam
     rede.eval() 
-    
+
     with torch.no_grad():
       for batch, (entrada, label) in tqdm(enumerate(val_loader), total=len(val_loader)):
         optimizer.zero_grad()
@@ -163,11 +148,15 @@ def main(parser):
   print(f'A melhor acurácia alcançada foi de {best_acc}')
 
 
+  summary(rede, (3, tamanho_da_imagem, tamanho_da_imagem))
+  #print(rede)
+
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--epochs', type=int, default=1)
+  parser.add_argument('--epochs', type=int, default=50)
   parser.add_argument('--dir_save', default="./pesos")
-  parser.add_argument('--nomes_labels', type=str, default=['covid', 'normal'])
+  parser.add_argument('--nomes_labels', type=str, default=['covid', 'normal', 'viral'])
   parser.add_argument('--data_train_path', type=str, default='data/train')
   parser.add_argument('--data_val_path', type=str, default='data/test')
   parser.add_argument('--device', type=bool, default=False)

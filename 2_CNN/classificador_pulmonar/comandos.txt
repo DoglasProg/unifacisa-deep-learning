@@ -1,0 +1,10 @@
+##### Com GPU #####
+python main.py --epochs 20 --device True
+python main.py --epochs 20 --device True --pesos True
+python main.py --epochs 20 --device True --pesos True --batch_size 20
+
+
+##### Sem GPU #####
+python main.py --epochs 20 
+python main.py --epochs 20 --pesos True
+python main.py --epochs 20 --pesos True --batch_size 20
