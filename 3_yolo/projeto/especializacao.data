@@ -1,0 +1,4 @@
+classes=2
+train=projeto/treino.txt
+valid=projeto/val.txt
+names=projeto/classes.names
