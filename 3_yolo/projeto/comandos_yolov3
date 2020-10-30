@@ -3,6 +3,7 @@ python3 train.py --data projeto/especializacao.data --cfg projeto/especializacao
 
 # Plotar Resultados
 python3 -c "from utils import utils; utils.plot_results()"
+python3 -c "from utils import utils; utils.plot_results_overlay()"
 
-#problemas para abrir windonws na GPU
+# problemas para abrir windonws na GPU
 export DISPLAY=:0
